@@ -6,26 +6,30 @@ st.set_page_config(
     page_title="Directorio UGEL Otuzco 2026", page_icon="📚", layout="wide"
 )
 
-# --- ESTILOS CSS PERSONALIZADOS (Diseño Institucional Azul / Celeste) ---
+# --- ESTILOS CSS PERSONALIZADOS (Diseño Institucional + Ocultar aviso de Enter) ---
 st.markdown(
     """
     <style>
-    /* Fondo general de la página */
+    /* Fondo general de la página con degradado azul/celeste */
     .stApp {
         background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
     }
     
-    /* Contenedor principal de títulos */
+    /* Títulos principales */
     h1 {
         color: #102a43;
         font-family: 'Helvetica Neue', sans-serif;
         font-weight: 700;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
     }
     
     p {
         color: #334e68;
         font-size: 1.1rem;
+    }
+
+    /* Ocultar el texto auxiliar "Press Enter to apply" de las cajas de texto */
+    .stTextInput small {
+        display: none !important;
     }
 
     /* Tarjetas de métricas */
@@ -52,22 +56,6 @@ st.markdown(
         overflow: hidden;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         border: 1px solid #bcccdc;
-    }
-
-    /* Botón de descarga estilizado */
-    .stDownloadButton button {
-        background-color: #0b69a3;
-        color: white;
-        border-radius: 8px;
-        font-weight: 600;
-        border: none;
-        padding: 0.5rem 1rem;
-        transition: all 0.3s ease;
-    }
-    .stDownloadButton button:hover {
-        background-color: #0353a4;
-        color: #ffffff;
-        box-shadow: 0 4px 8px rgba(3, 83, 164, 0.3);
     }
     </style>
 """,
@@ -126,9 +114,10 @@ try:
   col1, col2 = st.columns([2, 1])
 
   with col1:
+    # Input reactivo directo
     busqueda = st.text_input(
         "🔍 Buscar por Nombre, DNI, Cargo o Celular:",
-        placeholder="Escribe aquí para buscar...",
+        placeholder="Escribe aquí y se filtra al instante...",
     )
 
   area_col = next(
@@ -141,7 +130,7 @@ try:
       if area_seleccionada != "Todas":
         df = df[df[area_col] == area_seleccionada]
 
-  # --- BÚSQUEDA FLEXIBLE (CUALQUIER PALABRA COINCIDE) ---
+  # --- BÚSQUEDA FLEXIBLE EN TIEMPO REAL ---
   if busqueda:
     palabras = busqueda.strip().split()
     if palabras:
@@ -168,17 +157,8 @@ try:
   # Mostrar métricas rápidas
   st.metric(label="Total de Servidores Mostrados", value=len(df_filtered))
 
-  # Mostrar la tabla interactiva
+  # Mostrar la tabla interactiva (sin botón de descarga)
   st.dataframe(df_filtered, use_container_width=True, hide_index=True)
-
-  # Botón de descarga
-  csv = df_filtered.to_csv(index=False).encode("utf-8")
-  st.download_button(
-      label="📥 Descargar Directorio Filtrado en CSV",
-      data=csv,
-      file_name="directorio_ugel_otuzco_filtrado.csv",
-      mime="text/csv",
-  )
 
 except Exception as e:
   st.error(f"Error al cargar el archivo de Excel: {e}")
