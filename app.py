@@ -6,6 +6,74 @@ st.set_page_config(
     page_title="Directorio UGEL Otuzco 2026", page_icon="📚", layout="wide"
 )
 
+# --- ESTILOS CSS PERSONALIZADOS (Diseño Institucional Azul / Celeste) ---
+st.markdown(
+    """
+    <style>
+    /* Fondo general de la página */
+    .stApp {
+        background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
+    }
+    
+    /* Contenedor principal de títulos */
+    h1 {
+        color: #102a43;
+        font-family: 'Helvetica Neue', sans-serif;
+        font-weight: 700;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+    }
+    
+    p {
+        color: #334e68;
+        font-size: 1.1rem;
+    }
+
+    /* Tarjetas de métricas */
+    div[data-testid="metric-container"] {
+        background-color: #ffffff;
+        border: 1px solid #bcccdc;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    div[data-testid="metric-container"] label {
+        color: #486581 !important;
+        font-weight: 600;
+    }
+    
+    div[data-testid="metric-container"] div[data-testid="stMetricValue"] {
+        color: #0b69a3 !important;
+    }
+
+    /* Estilo de la tabla de datos */
+    div[data-testid="stDataFrame"] {
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        border: 1px solid #bcccdc;
+    }
+
+    /* Botón de descarga estilizado */
+    .stDownloadButton button {
+        background-color: #0b69a3;
+        color: white;
+        border-radius: 8px;
+        font-weight: 600;
+        border: none;
+        padding: 0.5rem 1rem;
+        transition: all 0.3s ease;
+    }
+    .stDownloadButton button:hover {
+        background-color: #0353a4;
+        color: #ffffff;
+        box-shadow: 0 4px 8px rgba(3, 83, 164, 0.3);
+    }
+    </style>
+""",
+    unsafe_allow_html=True,
+)
+
 # Título principal
 st.title("📌 Directorio de Servidores - UGEL Otuzco 2026")
 st.markdown(
@@ -53,17 +121,14 @@ def cargar_datos():
 try:
   df = cargar_datos()
 
-  # --- FILTROS EN TIEMPO REAL INSTANTÁNEO ---
+  # --- FILTROS VISIBLES EN LA PARTE SUPERIOR ---
   st.markdown("---")
   col1, col2 = st.columns([2, 1])
 
   with col1:
-    # Usamos una clave única y sin restricciones para el input en tiempo real
     busqueda = st.text_input(
         "🔍 Buscar por Nombre, DNI, Cargo o Celular:",
-        value="",
-        key="input_busqueda",
-        placeholder="Escribe aquí...",
+        placeholder="Escribe aquí para buscar...",
     )
 
   area_col = next(
@@ -72,13 +137,11 @@ try:
   if area_col:
     with col2:
       areas = ["Todas"] + list(df[area_col].dropna().unique())
-      area_seleccionada = st.selectbox(
-          "📂 Filtrar por Área:", areas, key="select_area"
-      )
+      area_seleccionada = st.selectbox("📂 Filtrar por Área:", areas)
       if area_seleccionada != "Todas":
         df = df[df[area_col] == area_seleccionada]
 
-  # --- BÚSQUEDA FLEXIBLE INSTANTÁNEA ---
+  # --- BÚSQUEDA FLEXIBLE (CUALQUIER PALABRA COINCIDE) ---
   if busqueda:
     palabras = busqueda.strip().split()
     if palabras:
