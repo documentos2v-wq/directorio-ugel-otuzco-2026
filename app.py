@@ -73,14 +73,16 @@ try:
       if area_seleccionada != "Todas":
         df = df[df[area_col] == area_seleccionada]
 
-  # --- BÚSQUEDA FLEXIBLE (CUALQUIER PALABRA COINCIDE) ---
+  # --- BÚSQUEDA FLEXIBLE Y SEGURA (CUALQUIER PALABRA COINCIDE) ---
   if busqueda:
     palabras = busqueda.strip().split()
     if palabras:
-      # Convertimos todo el DataFrame a texto de forma segura llenando vacíos
-      texto_completo = (
-          df.fillna("").astype(str).agg(" ".join, axis=1).str.lower()
-      )
+
+      # Función auxiliar para convertir toda la fila a texto de forma segura
+      def safe_join(row):
+        return " ".join([str(val) for val in row.values if pd.notna(val)])
+
+      texto_completo = df.apply(safe_join, axis=1).str.lower()
 
       # Buscamos si CUALQUIERA de las palabras escritas está presente en el registro
       condicion = texto_completo.str.contains(palabras[0].lower(), na=False)
