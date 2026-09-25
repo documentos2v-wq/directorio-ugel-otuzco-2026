@@ -53,13 +53,14 @@ def cargar_datos():
 try:
   df = cargar_datos()
 
-  # --- FILTROS VISIBLES EN LA PARTE SUPERIOR (IDEAL PARA CELULARES) ---
+  # --- FILTROS VISIBLES EN LA PARTE SUPERIOR ---
   st.markdown("---")
   col1, col2 = st.columns([2, 1])
 
   with col1:
     busqueda = st.text_input(
-        "🔍 Buscar por Nombre, DNI, Cargo o Celular:", placeholder="Escribe aquí..."
+        "🔍 Buscar por Nombre, DNI, Cargo o Celular:",
+        placeholder="Ej. Juan Otuzco o DNI...",
     )
 
   area_col = next(
@@ -72,13 +73,29 @@ try:
       if area_seleccionada != "Todas":
         df = df[df[area_col] == area_seleccionada]
 
-  # Aplicar búsqueda de texto
+  # --- LÓGICA DE BÚSQUEDA FLEXIBLE (CUALQUIER PALABRA COINCIDE) ---
   if busqueda:
-    df_filtered = df[
-        df.astype(str)
-        .apply(lambda x: x.str.contains(busqueda, case=False, na=False))
-        .any(axis=1)
-    ]
+    # Separamos lo que escribe el usuario en palabras individuales
+    palabras = busqueda.strip().split()
+
+    if palabras:
+      # Unimos todas las columnas del DataFrame en una sola cadena de texto por fila para buscar
+      texto_completo = (
+          df.astype(str)
+          .apply(lambda x: " ".join(x.values), axis=1)
+          .str.lower()
+      )
+
+      # Creamos una condición donde CUALQUIERA de las palabras (OR) esté contenida en la fila
+      condicion = texto_completo.str.contains(palabras[0], case=False, na=False)
+      for palabra in palabras[1:]:
+        condicion = condicion | texto_completo.str.contains(
+            palabra, case=False, na=False
+        )
+
+      df_filtered = df[condicion]
+    else:
+      df_filtered = df
   else:
     df_filtered = df
 
