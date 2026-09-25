@@ -60,7 +60,7 @@ try:
   with col1:
     busqueda = st.text_input(
         "🔍 Buscar por Nombre, DNI, Cargo o Celular:",
-        placeholder="Ej. Juan Otuzco o DNI...",
+        placeholder="Ej. Wilmer Otuzco...",
     )
 
   area_col = next(
@@ -73,24 +73,20 @@ try:
       if area_seleccionada != "Todas":
         df = df[df[area_col] == area_seleccionada]
 
-  # --- LÓGICA DE BÚSQUEDA FLEXIBLE (CUALQUIER PALABRA COINCIDE) ---
+  # --- BÚSQUEDA FLEXIBLE (CUALQUIER PALABRA COINCIDE) ---
   if busqueda:
-    # Separamos lo que escribe el usuario en palabras individuales
     palabras = busqueda.strip().split()
-
     if palabras:
-      # Unimos todas las columnas del DataFrame en una sola cadena de texto por fila para buscar
+      # Convertimos todo el DataFrame a texto de forma segura llenando vacíos
       texto_completo = (
-          df.astype(str)
-          .apply(lambda x: " ".join(x.values), axis=1)
-          .str.lower()
+          df.fillna("").astype(str).agg(" ".join, axis=1).str.lower()
       )
 
-      # Creamos una condición donde CUALQUIERA de las palabras (OR) esté contenida en la fila
-      condicion = texto_completo.str.contains(palabras[0], case=False, na=False)
+      # Buscamos si CUALQUIERA de las palabras escritas está presente en el registro
+      condicion = texto_completo.str.contains(palabras[0].lower(), na=False)
       for palabra in palabras[1:]:
         condicion = condicion | texto_completo.str.contains(
-            palabra, case=False, na=False
+            palabra.lower(), na=False
         )
 
       df_filtered = df[condicion]
