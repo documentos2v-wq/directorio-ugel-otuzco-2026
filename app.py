@@ -15,7 +15,6 @@ st.markdown(
 
 # Cargar los datos desde el archivo Excel
 @st.cache_data
-py
 def cargar_datos():
   excel_path = "DIRECTORIO UGEL OTUZCO 2026.xlsx"
   # Leemos la cabecera real detectada en la fila 6 (índice 6)
@@ -41,7 +40,6 @@ try:
 
   # Aplicar búsqueda de texto
   if busqueda:
-    # Convertimos todo a string para buscar sin errores
     df_filtered = df[
         df.astype(str)
         .apply(lambda x: x.str.contains(busqueda, case=False, na=False))
