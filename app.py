@@ -53,14 +53,15 @@ def cargar_datos():
 try:
   df = cargar_datos()
 
-  # --- FILTROS VISIBLES EN LA PARTE SUPERIOR ---
+  # --- FILTROS EN TIEMPO REAL ---
   st.markdown("---")
   col1, col2 = st.columns([2, 1])
 
   with col1:
+    # Este componente filtra automáticamente carácter por carácter
     busqueda = st.text_input(
         "🔍 Buscar por Nombre, DNI, Cargo o Celular:",
-        placeholder="Ej. Wilmer Otuzco...",
+        placeholder="Escribe aquí y filtra al instante...",
     )
 
   area_col = next(
@@ -73,18 +74,16 @@ try:
       if area_seleccionada != "Todas":
         df = df[df[area_col] == area_seleccionada]
 
-  # --- BÚSQUEDA FLEXIBLE Y SEGURA (CUALQUIER PALABRA COINCIDE) ---
+  # --- BÚSQUEDA FLEXIBLE EN TIEMPO REAL ---
   if busqueda:
     palabras = busqueda.strip().split()
     if palabras:
 
-      # Función auxiliar para convertir toda la fila a texto de forma segura
       def safe_join(row):
         return " ".join([str(val) for val in row.values if pd.notna(val)])
 
       texto_completo = df.apply(safe_join, axis=1).str.lower()
 
-      # Buscamos si CUALQUIERA de las palabras escritas está presente en el registro
       condicion = texto_completo.str.contains(palabras[0].lower(), na=False)
       for palabra in palabras[1:]:
         condicion = condicion | texto_completo.str.contains(
