@@ -53,15 +53,17 @@ def cargar_datos():
 try:
   df = cargar_datos()
 
-  # --- FILTROS EN TIEMPO REAL ---
+  # --- FILTROS EN TIEMPO REAL INSTANTÁNEO ---
   st.markdown("---")
   col1, col2 = st.columns([2, 1])
 
   with col1:
-    # Este componente filtra automáticamente carácter por carácter
+    # Usamos una clave única y sin restricciones para el input en tiempo real
     busqueda = st.text_input(
         "🔍 Buscar por Nombre, DNI, Cargo o Celular:",
-        placeholder="Escribe aquí y filtra al instante...",
+        value="",
+        key="input_busqueda",
+        placeholder="Escribe aquí...",
     )
 
   area_col = next(
@@ -70,11 +72,13 @@ try:
   if area_col:
     with col2:
       areas = ["Todas"] + list(df[area_col].dropna().unique())
-      area_seleccionada = st.selectbox("📂 Filtrar por Área:", areas)
+      area_seleccionada = st.selectbox(
+          "📂 Filtrar por Área:", areas, key="select_area"
+      )
       if area_seleccionada != "Todas":
         df = df[df[area_col] == area_seleccionada]
 
-  # --- BÚSQUEDA FLEXIBLE EN TIEMPO REAL ---
+  # --- BÚSQUEDA FLEXIBLE INSTANTÁNEA ---
   if busqueda:
     palabras = busqueda.strip().split()
     if palabras:
