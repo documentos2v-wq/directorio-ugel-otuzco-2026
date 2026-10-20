@@ -46,7 +46,7 @@ st.markdown(
         object-fit: cover;
     }
 
-    /* Tarjetas de resultados compactas y completas */
+    /* Tarjeta de resultado única y completa */
     .resultado-card {
         background-color: #131c2e;
         border: 1px solid #1e293b;
@@ -79,6 +79,15 @@ st.markdown(
     
     .card-info span {
         color: #f1f5f9;
+    }
+
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin-top: 40px;
+        text-align: center;
     }
     </style>
 """,
@@ -133,22 +142,34 @@ def cargar_datos():
 try:
   df = cargar_datos()
 
-  # Logo superior
+  # Carga robusta del logo en círculo
+  logo_html = ""
   try:
     with open("UGEL - LOGO.jpg", "rb") as image_file:
       encoded_string = base64.b64encode(image_file.read()).decode()
-    st.markdown(
-        f"""
-        <div class="logo-container">
-            <div class="logo-circle">
-                <img src="data:image/jpeg;base64,{encoded_string}" alt="Logo UGEL">
+      logo_html = f"""
+            <div class="logo-container">
+                <div class="logo-circle">
+                    <img src="data:image/jpeg;base64,{encoded_string}" alt="Logo UGEL">
+                </div>
             </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+            """
   except Exception:
-    pass
+    try:
+      with open("logo.jpg", "rb") as image_file:
+        encoded_string = base64.b64encode(image_file.read()).decode()
+        logo_html = f"""
+                <div class="logo-container">
+                    <div class="logo-circle">
+                        <img src="data:image/jpeg;base64,{encoded_string}" alt="Logo UGEL">
+                    </div>
+                </div>
+                """
+    except Exception:
+      pass
+
+  if logo_html:
+    st.markdown(logo_html, unsafe_allow_html=True)
 
   st.markdown(
       "<h1 style='text-align: center; color: #f8fafc; font-size: 1.6rem;"
@@ -168,7 +189,7 @@ try:
       label_visibility="collapsed",
   )
 
-  # LÓGICA DE FILTRADO Y BÚSQUEDA SENSIBLE
+  # LÓGICA DE FILTRADO Y BÚSQUEDA SENSIBLE (Limitado a 1 resultado)
   if busqueda and busqueda.strip() != "":
     palabras = busqueda.strip().lower().split()
     if palabras:
@@ -182,62 +203,77 @@ try:
       for palabra in palabras[1:]:
         condicion = condicion | texto_completo.str.contains(palabra, na=False)
 
-      df_filtered = df[condicion]
+      # .head(1) garantiza que solo se muestre el primer resultado coincidente
+      df_filtered = df[condicion].head(1)
     else:
       df_filtered = pd.DataFrame(columns=df.columns)
   else:
-    # Si no hay búsqueda, no mostramos ningún resultado para mantener limpio el inicio
     df_filtered = pd.DataFrame(columns=df.columns)
 
   st.markdown("<br>", unsafe_allow_html=True)
 
-  # Mensaje centrado de resultados encontrados
+  # Renderizar tarjeta única o estado inicial con ilustración
   if busqueda and busqueda.strip() != "":
-    st.markdown(
-        f"<p style='text-align: center; color: #64748b; font-size:"
-        f" 0.9rem;'><b>{len(df_filtered)}</b> resultados encontrados</p>",
-        unsafe_allow_html=True,
-    )
-  else:
-    st.markdown(
-        "<p style='text-align: center; color: #64748b; font-size: 0.9rem;'>🔍"
-        " Escribe en el buscador para encontrar un servidor</p>",
-        unsafe_allow_html=True,
-    )
-
-  st.markdown("---")
-
-  # Renderizar tarjetas solo si hay una búsqueda activa
-  if busqueda and busqueda.strip() != "":
-    for _, row in df_filtered.iterrows():
-      detalles_html = ""
-      for col in df.columns:
-        val_limpio = limpiar_valor(row[col])
-        if val_limpio != "N/A" and "NOMBRE" not in col.upper():
-          detalles_html += f"<div class='card-info'><b>{col}:</b> <span>{val_limpio}</span></div>"
-
-      nombre = limpiar_valor(
-          next(
-              (
-                  row[c]
-                  for c in df.columns
-                  if "NOMBRE" in c.upper() and pd.notna(row[c])
-              ),
-              "Sin Nombre",
-          )
-      )
-
+    if len(df_filtered) > 0:
       st.markdown(
-          f"""
-            <div class="resultado-card">
-                <div class="card-title">👤 {nombre}</div>
-                <div class="card-grid">
-                    {detalles_html}
-                </div>
-            </div>
-            """,
+          "<p style='text-align: center; color: #64748b; font-size:"
+          " 0.9rem;'><b>1</b> resultado encontrado</p>",
           unsafe_allow_html=True,
       )
+      st.markdown("---")
+
+      for _, row in df_filtered.iterrows():
+        detalles_html = ""
+        for col in df.columns:
+          val_limpio = limpiar_valor(row[col])
+          if val_limpio != "N/A" and "NOMBRE" not in col.upper():
+            detalles_html += f"<div class='card-info'><b>{col}:</b> <span>{val_limpio}</span></div>"
+
+        nombre = limpiar_valor(
+            next(
+                (
+                    row[c]
+                    for c in df.columns
+                    if "NOMBRE" in c.upper() and pd.notna(row[c])
+                ),
+                "Sin Nombre",
+            )
+        )
+
+        st.markdown(
+            f"""
+                <div class="resultado-card">
+                    <div class="card-title">👤 {nombre}</div>
+                    <div class="card-grid">
+                        {detalles_html}
+                    </div>
+                </div>
+                """,
+            unsafe_allow_html=True,
+        )
+    else:
+      st.markdown(
+          "<p style='text-align: center; color: #ef4444; font-size:"
+          " 0.95rem;'>❌ No se encontraron resultados para tu búsqueda.</p>",
+          unsafe_allow_html=True,
+      )
+  else:
+    # Ilustración vectorial de libreta/búsqueda mientras no haya texto
+    st.markdown(
+        """
+        <div class="empty-state">
+            <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/>
+                <path d="M6 6h8"/>
+                <path d="M6 10h6"/>
+                <circle cx="15" cy="14" r="3"/>
+                <path d="m17.5 16.5 2.5 2.5"/>
+            </svg>
+            <p style="color: #64748b; font-size: 0.9rem; margin-top: 15px;">🔍 Escribe un nombre, DNI o cargo para consultar el directorio</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 except Exception as e:
   st.error(f"Error al cargar el archivo de Excel: {e}")
