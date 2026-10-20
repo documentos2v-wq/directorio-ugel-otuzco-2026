@@ -2,31 +2,28 @@ import base64
 import pandas as pd
 import streamlit as st
 
-# Configuración de la página optimizada para celulares y pantallas grandes
+# Configuración de la página
 st.set_page_config(
     page_title="Directorio UGEL Otuzco 2026", page_icon="📚", layout="centered"
 )
 
-# --- ESTILOS CSS RESPONSIVOS PARA MÓVIL ---
+# --- ESTILOS CSS MODERNOS ---
 st.markdown(
     """
     <style>
-    /* Fondo general oscuro elegante */
     .stApp {
         background-color: #0b0f19;
     }
     
-    /* Ocultar el texto auxiliar de las cajas de texto */
     .stTextInput small {
         display: none !important;
     }
 
-    /* Contenedor responsivo y centrado para el logo */
     .logo-container {
         display: flex;
         justify-content: center;
         align-items: center;
-        margin-top: 10px;
+        margin-top: 15px;
         margin-bottom: 10px;
     }
     
@@ -49,39 +46,39 @@ st.markdown(
         object-fit: cover;
     }
 
-    /* Tarjetas de resultados adaptadas para una lectura cómoda en celular */
+    /* Tarjetas de resultados compactas y completas */
     .resultado-card {
         background-color: #131c2e;
         border: 1px solid #1e293b;
-        padding: 16px;
+        padding: 18px;
         border-radius: 12px;
-        margin-bottom: 12px;
+        margin-bottom: 15px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     }
     
     .card-title {
         color: #f8fafc;
-        font-size: 1.1rem;
+        font-size: 1.15rem;
         font-weight: 600;
-        margin-bottom: 6px;
+        margin-bottom: 10px;
+        border-bottom: 1px solid #1e293b;
+        padding-bottom: 6px;
+    }
+
+    .card-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
     }
 
     .card-info {
         color: #94a3b8;
         font-size: 0.9rem;
         margin-bottom: 4px;
-        line-height: 1.4;
     }
     
-    .badge-area {
-        display: inline-block;
-        background-color: #1e293b;
-        color: #38bdf8;
-        padding: 2px 8px;
-        border-radius: 6px;
-        font-size: 0.75rem;
-        font-weight: 500;
-        margin-top: 6px;
+    .card-info span {
+        color: #f1f5f9;
     }
     </style>
 """,
@@ -89,17 +86,15 @@ st.markdown(
 )
 
 
-# Función para limpiar números flotantes (eliminar el .0 al final)
 def limpiar_valor(val):
   if pd.isna(val):
     return "N/A"
   s = str(val).strip()
   if s.endswith(".0"):
     s = s[:-2]
-  return s
+  return s if s and s.lower() != "none" else "N/A"
 
 
-# Cargar los datos desde el archivo Excel
 @st.cache_data
 def cargar_datos():
   excel_path = "DIRECTORIO UGEL OTUZCO 2026.xlsx"
@@ -138,7 +133,7 @@ def cargar_datos():
 try:
   df = cargar_datos()
 
-  # --- ENCABEZADO CON LOGO CIRCULAR AJUSTADO PARA MÓVIL ---
+  # 1. LOGO EN CÍRCULO SUPERIOR
   try:
     with open("UGEL - LOGO.jpg", "rb") as image_file:
       encoded_string = base64.b64encode(image_file.read()).decode()
@@ -166,29 +161,16 @@ try:
       unsafe_allow_html=True,
   )
 
-  # Barra de búsqueda adaptada para celulares
+  # Barra de búsqueda principal
   busqueda = st.text_input(
       "Búsqueda",
-      placeholder="🔍 Buscar por nombre, DNI, cargo...",
+      placeholder="🔍 Escribe un nombre (ej. amdres), DNI, cargo...",
       label_visibility="collapsed",
   )
 
-  # Filtro de área adaptado
-  area_col = next(
-      (c for c in df.columns if "AREA" in c.upper() or "ÁREA" in c.upper()), None
-  )
-  if area_col:
-    st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
-    areas = ["Todas las áreas"] + list(df[area_col].dropna().unique())
-    area_seleccionada = st.selectbox(
-        "Filtrar por área", areas, label_visibility="collapsed"
-    )
-    if area_seleccionada != "Todas las áreas":
-      df = df[df[area_col] == area_seleccionada]
-
-  # --- LÓGICA DE FILTRADO ---
+  # 4. BÚSQUEDA SENSIBLE / FLEXIBLE
   if busqueda:
-    palabras = busqueda.strip().split()
+    palabras = busqueda.strip().lower().split()
     if palabras:
 
       def safe_join(row):
@@ -196,11 +178,9 @@ try:
 
       texto_completo = df.apply(safe_join, axis=1).str.lower()
 
-      condicion = texto_completo.str.contains(palabras[0].lower(), na=False)
+      condicion = texto_completo.str.contains(palabras[0], na=False)
       for palabra in palabras[1:]:
-        condicion = condicion | texto_completo.str.contains(
-            palabra.lower(), na=False
-        )
+        condicion = condicion | texto_completo.str.contains(palabra, na=False)
 
       df_filtered = df[condicion]
     else:
@@ -209,8 +189,6 @@ try:
     df_filtered = df
 
   st.markdown("<br>", unsafe_allow_html=True)
-
-  # Contador de resultados
   st.markdown(
       f"<p style='color: #64748b; font-size: 0.9rem;'><b>{len(df_filtered)}</b>"
       " resultados encontrados</p>",
@@ -218,8 +196,18 @@ try:
   )
   st.markdown("---")
 
-  # --- RENDERIZAR RESULTADOS LIMPIANDO EL .0 DE LOS NÚMEROS ---
+  # 3. RENDERIZAR CADA PERSONA EN UNA SOLA TARJETA CON TODA SU INFORMACIÓN
   for _, row in df_filtered.iterrows():
+    # Extraer todos los campos disponibles en la fila del DataFrame
+    detalles_html = ""
+    for col in df.columns:
+      val_limpio = limpiar_valor(row[col])
+      # Omitir columnas vacías o de índice numérico si se prefiere, o mostrarlas todas
+      if val_limpio != "N/A" and "NOMBRE" not in col.upper():
+        detalles_html += (
+            f"<div class='card-info'><b>{col}:</b> <span>{val_limpio}</span></div>"
+        )
+
     nombre = limpiar_valor(
         next(
             (
@@ -230,56 +218,14 @@ try:
             "Sin Nombre",
         )
     )
-    cargo = limpiar_valor(
-        next(
-            (
-                row[c]
-                for c in df.columns
-                if "CARGO" in c.upper() and pd.notna(row[c])
-            ),
-            "Sin Cargo",
-        )
-    )
-    dni = limpiar_valor(
-        next(
-            (row[c] for c in df.columns if "DNI" in c.upper() and pd.notna(row[c])),
-            "N/A",
-        )
-    )
-    celular = limpiar_valor(
-        next(
-            (
-                row[c]
-                for c in df.columns
-                if ("CEL" in c.upper() or "TEL" in c.upper())
-                and pd.notna(row[c])
-            ),
-            "N/A",
-        )
-    )
-    correo = limpiar_valor(
-        next(
-            (
-                row[c]
-                for c in df.columns
-                if ("CORREO" in c.upper() or "EMAIL" in c.upper())
-                and pd.notna(row[c])
-            ),
-            "N/A",
-        )
-    )
-    area = limpiar_valor(
-        row[area_col] if area_col and pd.notna(row[area_col]) else "General"
-    )
 
     st.markdown(
         f"""
         <div class="resultado-card">
             <div class="card-title">👤 {nombre}</div>
-            <div class="card-info"><b>Cargo:</b> {cargo}</div>
-            <div class="card-info"><b>DNI:</b> {dni} &nbsp;|&nbsp; <b>Celular:</b> {celular}</div>
-            <div class="card-info"><b>Correo:</b> {correo}</div>
-            <div><span class="badge-area">📁 {area}</span></div>
+            <div class="card-grid">
+                {detalles_html}
+            </div>
         </div>
         """,
         unsafe_allow_html=True,
