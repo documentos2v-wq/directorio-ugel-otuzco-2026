@@ -1,4 +1,5 @@
 import base64
+from difflib import SequenceMatcher
 import pandas as pd
 import streamlit as st
 
@@ -7,11 +8,10 @@ st.set_page_config(
     page_title="Directorio UGEL Otuzco 2026", page_icon="📚", layout="centered"
 )
 
-# --- ESTILOS CSS ROBUSTOS (Adaptables a cualquier modo de navegador y móvil) ---
+# --- ESTILOS CSS ROBUSTOS ---
 st.markdown(
     """
     <style>
-    /* Forzar fondo y colores estables sin importar extensiones o modos del navegador */
     .stApp {
         background-color: #0b0f19 !important;
         color: #f8fafc !important;
@@ -21,7 +21,6 @@ st.markdown(
         display: none !important;
     }
 
-    /* Contenedor flexible para centrar el logo de forma absoluta en celulares y PC */
     .logo-flex-center {
         display: flex;
         justify-content: center;
@@ -50,14 +49,12 @@ st.markdown(
         object-fit: cover;
     }
 
-    /* Caja de búsqueda adaptada para móviles */
     div[data-baseweb="input"] {
         background-color: #161e2e !important;
         border-radius: 12px !important;
         border: 1px solid #334155 !important;
     }
 
-    /* Tarjeta de resultado única y completa optimizada para celular */
     .resultado-card {
         background-color: #131c2e !important;
         border: 1px solid #1e293b !important;
@@ -82,7 +79,6 @@ st.markdown(
         gap: 6px;
     }
 
-    /* En pantallas un poco más anchas (PC), poner los datos en dos columnas */
     @media (min-width: 640px) {
         .card-grid {
             grid-template-columns: 1fr 1fr;
@@ -101,7 +97,6 @@ st.markdown(
         color: #f1f5f9 !important;
     }
 
-    /* Animación del libro abierto centralizada */
     .empty-state {
         display: flex;
         flex-direction: column;
@@ -181,7 +176,7 @@ def cargar_datos():
 try:
   df = cargar_datos()
 
-  # Carga robusta y centrada absoluta del logo usando Base64
+  # Carga robusta y centrada del logo usando Base64
   logo_html = ""
   for filename in ["UGEL - LOGO.jpg", "logo.jpg"]:
     try:
@@ -215,29 +210,43 @@ try:
   # Barra de búsqueda principal
   busqueda = st.text_input(
       "Búsqueda",
-      placeholder="🔍 Escribe un nombre, DNI, cargo...",
+      placeholder="🔍 Escribe un nombre (ej. Gilmer), DNI, cargo...",
       label_visibility="collapsed",
   )
 
-  # Lógica de filtrado (Estrictamente limitado a 1 resultado detallado)
+  # Lógica de búsqueda inteligente y tolerante a errores (Fuzzy Search)
+  df_filtered = pd.DataFrame(columns=df.columns)
   if busqueda and busqueda.strip() != "":
-    palabras = busqueda.strip().lower().split()
-    if palabras:
+    query = busqueda.strip().lower()
 
-      def safe_join(row):
-        return " ".join([str(val) for val in row.values if pd.notna(val)])
 
-      texto_completo = df.apply(safe_join, axis=1).str.lower()
+    def safe_join(row):
+      return " ".join([str(val) for val in row.values if pd.notna(val)])
 
-      condicion = texto_completo.str.contains(palabras[0], na=False)
-      for palabra in palabras[1:]:
-        condicion = condicion | texto_completo.str.contains(palabra, na=False)
 
-      df_filtered = df[condicion].head(1)
+    # 1. Intentar primero coincidencia exacta por subcadena
+    texto_completo = df.apply(safe_join, axis=1).str.lower()
+    exact_matches = df[texto_completo.str.contains(query, na=False)]
+
+    if not exact_matches.empty:
+      df_filtered = exact_matches.head(1)
     else:
-      df_filtered = pd.DataFrame(columns=df.columns)
-  else:
-    df_filtered = pd.DataFrame(columns=df.columns)
+      # 2. Si no hay coincidencia exacta, aplicar búsqueda difusa (similitud de palabras)
+      best_row = None
+      highest_score = 0.0
+
+      for _, row in df.iterrows():
+        row_text = safe_join(row).lower()
+        row_words = row_text.split()
+        for word in row_words:
+          score = SequenceMatcher(None, query, word).ratio()
+          if score > highest_score:
+            highest_score = score
+            best_row = row
+
+      # Umbral de similitud (0.65 permite detectar nombres cercanos como Gilmer y Wilmer)
+      if highest_score >= 0.65 and best_row is not None:
+        df_filtered = pd.DataFrame([best_row])
 
   st.markdown("<br>", unsafe_allow_html=True)
 
@@ -246,7 +255,7 @@ try:
     if len(df_filtered) > 0:
       st.markdown(
           "<p style='text-align: center; color: #64748b !important; font-size:"
-          " 0.85rem;'><b>1</b> resultado encontrado</p>",
+          " 0.85rem;'><b>1</b> resultado encontrado (coincidencia inteligente)</p>",
           unsafe_allow_html=True,
       )
       st.markdown("---")
@@ -287,7 +296,7 @@ try:
           unsafe_allow_html=True,
       )
   else:
-    # Ilustración animada del libro abierto perfectamente proporcionada
+    # Ilustración animada del libro abierto
     st.markdown(
         """
         <div class="empty-state">
