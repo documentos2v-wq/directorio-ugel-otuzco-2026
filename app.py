@@ -245,9 +245,20 @@ try:
         <div class="empty-state">
             <div class="book-loader">
                 <svg width="100" height="70" viewBox="0 0 100 70" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <!-- Base de la cubierta del libro abierta -->
                     <path d="M50 62C35 62 15 64 5 58V12C15 16 35 14 50 20C65 14 85 16 95 12V58C85 64 65 62 50 62Z" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
-                    <!-- Lomo central -->
                     <path d="M50 20V62" stroke="#38bdf8" stroke-width="2"/>
-                    <!-- Página izquierda estática -->
-                    <path d="M48 21C35 15 17
+                    <path d="M48 21C35 15 17 17 7 21V55C17 51 35 49 48 55V21Z" fill="#f1f5f9"/>
+                    <line x1="14" y1="28" x2="38" y2="28" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="14" y1="36" x2="34" y2="36" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="14" y1="44" x2="30" y2="44" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <div class="book-page"></div>
+            </div>
+            <p style="color: #64748b; font-size: 0.9rem; margin-top: 20px;">📖 Escribe un nombre, DNI o cargo para consultar la agenda...</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+except Exception as e:
+  st.error(f"Error al cargar el archivo de Excel: {e}")
