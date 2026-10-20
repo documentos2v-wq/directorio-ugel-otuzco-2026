@@ -6,7 +6,7 @@ st.set_page_config(
     page_title="Directorio UGEL Otuzco 2026", page_icon="📚", layout="centered"
 )
 
-# --- ESTILOS CSS MODERNOS Y ANIMACIÓN RETRO ---
+# --- ESTILOS CSS CON ANIMACIÓN DE LIBRO REALISTA ---
 st.markdown(
     """
     <style>
@@ -53,37 +53,41 @@ st.markdown(
         color: #f1f5f9;
     }
 
-    /* Animación estilo arcade / puntos (Buscando en agenda) */
+    /* Contenedor y animación realista del libro abierto */
     .empty-state {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        margin-top: 40px;
+        margin-top: 35px;
         text-align: center;
     }
 
-    .pixel-book-container {
+    .book-loader {
         position: relative;
-        width: 90px;
+        width: 100px;
         height: 70px;
-        animation: floatBook 1.5s ease-in-out infinite alternate;
+        perspective: 600px;
+        margin-bottom: 15px;
     }
 
-    @keyframes floatBook {
-        0% { transform: translateY(0px); }
-        100% { transform: translateY(-8px); }
-    }
-
-    .page-flip {
-        animation: flipPage 0.8s steps(2, start) infinite;
+    .book-page {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        width: 50%;
+        height: 100%;
+        background: #f8fafc;
+        border-radius: 0 4px 4px 0;
         transform-origin: left center;
+        animation: pageFlip 1.2s ease-in-out infinite;
+        box-shadow: inset 2px 0 5px rgba(0,0,0,0.1);
     }
 
-    @keyframes flipPage {
-        0% { transform: rotateY(0deg); opacity: 0.8; }
-        50% { transform: rotateY(-45deg); opacity: 1; }
-        100% { transform: rotateY(0deg); opacity: 0.8; }
+    @keyframes pageFlip {
+        0% { transform: rotateY(0deg); background: #f8fafc; }
+        50% { transform: rotateY(-180deg); background: #cbd5e1; }
+        100% { transform: rotateY(0deg); background: #f8fafc; }
     }
     </style>
 """,
@@ -189,7 +193,7 @@ try:
 
   st.markdown("<br>", unsafe_allow_html=True)
 
-  # Renderizar tarjeta o animación de búsqueda interactiva
+  # Renderizar tarjeta o animación de libro abierto realista
   if busqueda and busqueda.strip() != "":
     if len(df_filtered) > 0:
       st.markdown(
@@ -235,28 +239,15 @@ try:
           unsafe_allow_html=True,
       )
   else:
-    # Animación SVG vectorial de la agenda con movimiento
+    # Animación avanzada de libro abierto con hojas reales pasando
     st.markdown(
         """
         <div class="empty-state">
-            <div class="pixel-book-container">
-                <svg width="90" height="70" viewBox="0 0 64 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="8" y="8" width="48" height="34" rx="3" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
-                    <line x1="32" y1="8" x2="32" y2="42" stroke="#38bdf8" stroke-width="2"/>
-                    <circle cx="32" cy="12" r="1.5" fill="#f8fafc"/>
-                    <circle cx="32" cy="22" r="1.5" fill="#f8fafc"/>
-                    <circle cx="32" cy="32" r="1.5" fill="#f8fafc"/>
-                    <path class="page-flip" d="M32 10C32 10 44 14 48 25C52 36 32 40 32 40V10Z" fill="#38bdf8" opacity="0.7"/>
-                    <line x1="12" y1="16" x2="24" y2="16" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/>
-                    <line x1="12" y1="22" x2="22" y2="22" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/>
-                    <line x1="12" y1="28" x2="20" y2="28" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-            </div>
-            <p style="color: #64748b; font-size: 0.9rem; margin-top: 15px;">📖 Escribe un nombre, DNI o cargo para buscar en la agenda...</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-except Exception as e:
-  st.error(f"Error al cargar el archivo de Excel: {e}")
+            <div class="book-loader">
+                <svg width="100" height="70" viewBox="0 0 100 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Base de la cubierta del libro abierta -->
+                    <path d="M50 62C35 62 15 64 5 58V12C15 16 35 14 50 20C65 14 85 16 95 12V58C85 64 65 62 50 62Z" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
+                    <!-- Lomo central -->
+                    <path d="M50 20V62" stroke="#38bdf8" stroke-width="2"/>
+                    <!-- Página izquierda estática -->
+                    <path d="M48 21C35 15 17
