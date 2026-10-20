@@ -8,7 +8,7 @@ st.set_page_config(
     page_title="Directorio UGEL Otuzco 2026", page_icon="📚", layout="centered"
 )
 
-# --- ESTILOS CSS ROBUSTOS Y SELECTOR COMPACTO ---
+# --- ESTILOS CSS CON OPCIONES DE VISTA PERFECTAMENTE CENTRADAS ---
 st.markdown(
     """
     <style>
@@ -55,17 +55,25 @@ st.markdown(
         border: 1px solid #334155 !important;
     }
 
-    /* Estilo compacto para el selector de modo de vista */
+    /* Centrar completamente el radio button de Streamlit */
+    div.row-widget.stRadio {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
     div.row-widget.stRadio > div {
         display: flex;
         justify-content: center;
         flex-direction: row;
-        gap: 15px;
+        gap: 20px;
+        width: 100%;
     }
     
     div.row-widget.stRadio label {
         color: #94a3b8 !important;
         font-size: 0.85rem !important;
+        cursor: pointer;
     }
 
     .resultado-card {
@@ -227,7 +235,7 @@ try:
       label_visibility="collapsed",
   )
 
-  # Selector muy pequeño y compacto para elegir entre 1 resultado o múltiples
+  # Selector de modo de vista perfectamente centrado
   modo_vista = "Solo 1 resultado"
   if busqueda and busqueda.strip() != "":
     st.markdown("<div style='height: 5px;'></div>", unsafe_allow_html=True)
