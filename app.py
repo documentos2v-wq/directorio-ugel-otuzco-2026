@@ -8,7 +8,7 @@ st.set_page_config(
     page_title="Directorio UGEL Otuzco 2026", page_icon="📚", layout="centered"
 )
 
-# --- ESTILOS CSS ROBUSTOS ---
+# --- ESTILOS CSS ROBUSTOS Y SELECTOR COMPACTO ---
 st.markdown(
     """
     <style>
@@ -53,6 +53,19 @@ st.markdown(
         background-color: #161e2e !important;
         border-radius: 12px !important;
         border: 1px solid #334155 !important;
+    }
+
+    /* Estilo compacto para el selector de modo de vista */
+    div.row-widget.stRadio > div {
+        display: flex;
+        justify-content: center;
+        flex-direction: row;
+        gap: 15px;
+    }
+    
+    div.row-widget.stRadio label {
+        color: #94a3b8 !important;
+        font-size: 0.85rem !important;
     }
 
     .resultado-card {
@@ -210,9 +223,20 @@ try:
   # Barra de búsqueda principal
   busqueda = st.text_input(
       "Búsqueda",
-      placeholder="🔍 Escribe un nombre (ej. Gilmer), DNI, cargo...",
+      placeholder="🔍 Escribe un nombre, área (ej. AGA), DNI, cargo...",
       label_visibility="collapsed",
   )
+
+  # Selector muy pequeño y compacto para elegir entre 1 resultado o múltiples
+  modo_vista = "Solo 1 resultado"
+  if busqueda and busqueda.strip() != "":
+    st.markdown("<div style='height: 5px;'></div>", unsafe_allow_html=True)
+    modo_vista = st.radio(
+        "Modo de vista",
+        ["Solo 1 resultado", "Ver múltiples resultados"],
+        horizontal=True,
+        label_visibility="collapsed",
+    )
 
   # Lógica de búsqueda inteligente y tolerante a errores (Fuzzy Search)
   df_filtered = pd.DataFrame(columns=df.columns)
@@ -224,38 +248,46 @@ try:
       return " ".join([str(val) for val in row.values if pd.notna(val)])
 
 
-    # 1. Intentar primero coincidencia exacta por subcadena
+    # 1. Coincidencia exacta por subcadena
     texto_completo = df.apply(safe_join, axis=1).str.lower()
     exact_matches = df[texto_completo.str.contains(query, na=False)]
 
     if not exact_matches.empty:
-      df_filtered = exact_matches.head(1)
+      if modo_vista == "Solo 1 resultado":
+        df_filtered = exact_matches.head(1)
+      else:
+        df_filtered = exact_matches
     else:
-      # 2. Si no hay coincidencia exacta, aplicar búsqueda difusa (similitud de palabras)
-      best_row = None
-      highest_score = 0.0
-
+      # 2. Búsqueda difusa (similitud) si no hay coincidencia exacta
+      best_rows = []
       for _, row in df.iterrows():
         row_text = safe_join(row).lower()
         row_words = row_text.split()
+        max_score = 0.0
         for word in row_words:
           score = SequenceMatcher(None, query, word).ratio()
-          if score > highest_score:
-            highest_score = score
-            best_row = row
+          if score > max_score:
+            max_score = score
+        if max_score >= 0.65:
+          best_rows.append((max_score, row))
 
-      # Umbral de similitud (0.65 permite detectar nombres cercanos como Gilmer y Wilmer)
-      if highest_score >= 0.65 and best_row is not None:
-        df_filtered = pd.DataFrame([best_row])
+      if best_rows:
+        best_rows.sort(key=lambda x: x[0], reverse=True)
+        matched_df = pd.DataFrame([r[1] for r in best_rows])
+        if modo_vista == "Solo 1 resultado":
+          df_filtered = matched_df.head(1)
+        else:
+          df_filtered = matched_df
 
   st.markdown("<br>", unsafe_allow_html=True)
 
-  # Renderizar tarjeta o animación del libro abierto
+  # Renderizar resultados o animación
   if busqueda and busqueda.strip() != "":
     if len(df_filtered) > 0:
       st.markdown(
-          "<p style='text-align: center; color: #64748b !important; font-size:"
-          " 0.85rem;'><b>1</b> resultado encontrado (coincidencia inteligente)</p>",
+          f"<p style='text-align: center; color: #64748b !important; font-size:"
+          f" 0.85rem;'><b>{len(df_filtered)}</b> resultado(s)"
+          " encontrado(s)</p>",
           unsafe_allow_html=True,
       )
       st.markdown("---")
@@ -317,7 +349,7 @@ try:
                     </g>
                 </svg>
             </div>
-            <p style="color: #64748b !important; font-size: 0.85rem; margin-top: 15px;">📖 Escribe un nombre, DNI o cargo para consultar la agenda...</p>
+            <p style="color: #64748b !important; font-size: 0.85rem; margin-top: 15px;">📖 Escribe un nombre, área, DNI o cargo para consultar la agenda...</p>
         </div>
         """,
         unsafe_allow_html=True,
