@@ -1,4 +1,3 @@
-import base64
 import pandas as pd
 import streamlit as st
 
@@ -7,7 +6,7 @@ st.set_page_config(
     page_title="Directorio UGEL Otuzco 2026", page_icon="📚", layout="wide"
 )
 
-# --- ESTILOS CSS PARA LOGO REDONDO Y DISEÑO MODERNO ---
+# --- ESTILOS CSS PARA DISEÑO MODERNO Y TARJETAS ---
 st.markdown(
     """
     <style>
@@ -19,33 +18,6 @@ st.markdown(
     /* Ocultar el texto auxiliar "Press Enter to apply" */
     .stTextInput small {
         display: none !important;
-    }
-
-    /* Estilo del contenedor circular para el logo */
-    .logo-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin-bottom: 15px;
-    }
-    
-    .logo-circle {
-        width: 90px;
-        height: 90px;
-        border-radius: 50%;
-        overflow: hidden;
-        background-color: #ffffff;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        border: 2px solid #334155;
-    }
-    
-    .logo-circle img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
     }
 
     /* Estilo para simular la barra de búsqueda central grande */
@@ -143,25 +115,20 @@ def cargar_datos():
 try:
     df = cargar_datos()
 
-    # --- ENCABEZADO CON LOGO CIRCULAR Y TÍTULO "UGEL - OTUZCO" ---
-    try:
-        with open("UGEL - LOGO.jpg", "rb") as image_file:
-            encoded_string = base64.b64encode(image_file.read()).decode()
-        st.markdown(
-            f"""
-            <div class="logo-container">
-                <div class="logo-circle">
-                    <img src="data:image/jpeg;base64,{encoded_string}" alt="Logo UGEL">
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-    except Exception:
-        pass
+    # --- ENCABEZADO CON LOGO CIRCULAR (Usando columnas de Streamlit) ---
+    col_izq, col_centro, col_der = st.columns([3, 1, 3])
+    with col_centro:
+        try:
+            # Asegúrate de subir tu imagen con un nombre simple como 'logo.jpg' o 'ugel_logo.jpg'
+            st.image("logo.jpg", width=95)
+        except Exception:
+            try:
+                st.image("UGEL - LOGO.jpg", width=95)
+            except Exception:
+                pass
 
     st.markdown(
-        "<h1 style='text-align: center; color: #f8fafc; margin-top: 10px;'>UGEL - OTUZCO</h1>",
+        "<h1 style='text-align: center; color: #f8fafc; margin-top: 5px;'>UGEL - OTUZCO</h1>",
         unsafe_allow_html=True,
     )
     st.markdown(
@@ -170,8 +137,8 @@ try:
     )
 
     # Centrar la barra de búsqueda principal usando columnas
-    _, col_centro, _ = st.columns([1, 3, 1])
-    with col_centro:
+    _, col_busqueda, _ = st.columns([1, 3, 1])
+    with col_busqueda:
         busqueda = st.text_input(
             "Búsqueda",
             placeholder="🔍 Escribe un nombre, DNI, cargo o celular...",
