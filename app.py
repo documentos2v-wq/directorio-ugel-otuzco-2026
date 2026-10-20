@@ -1,4 +1,3 @@
-import base64
 import pandas as pd
 import streamlit as st
 
@@ -17,33 +16,6 @@ st.markdown(
     
     .stTextInput small {
         display: none !important;
-    }
-
-    .logo-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin-top: 15px;
-        margin-bottom: 10px;
-    }
-    
-    .logo-circle {
-        width: 85px;
-        height: 85px;
-        border-radius: 50%;
-        overflow: hidden;
-        background-color: #ffffff;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-        border: 2px solid #334155;
-    }
-    
-    .logo-circle img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
     }
 
     /* Tarjeta de resultado única y completa */
@@ -103,7 +75,6 @@ st.markdown(
         100% { transform: translateY(-8px); }
     }
 
-    /* Páginas pasando con efecto de pulso y movimiento */
     .page-flip {
         animation: flipPage 0.8s steps(2, start) infinite;
         transform-origin: left center;
@@ -167,21 +138,125 @@ def cargar_datos():
 try:
   df = cargar_datos()
 
-  # Carga robusta del logo en círculo
-  logo_html = ""
-  try:
-    with open("UGEL - LOGO.jpg", "rb") as image_file:
-      encoded_string = base64.b64encode(image_file.read()).decode()
-      logo_html = f"""
-            <div class="logo-container">
-                <div class="logo-circle">
-                    <img src="data:image/jpeg;base64,{encoded_string}" alt="Logo UGEL">
-                </div>
-            </div>
-            """
-  except Exception:
+  # Carga segura del logo con st.image centrado
+  col_izq, col_centro, col_der = st.columns([3, 1, 3])
+  with col_centro:
     try:
-      with open("logo.jpg", "rb") as image_file:
-        encoded_string = base64.b64encode(image_file.read()).decode()
-        logo_html = f"""
-                <div class="logo-container">
+      st.image("UGEL - LOGO.jpg", width=85)
+    except Exception:
+      try:
+        st.image("logo.jpg", width=85)
+      except Exception:
+        pass
+
+  st.markdown(
+      "<h1 style='text-align: center; color: #f8fafc; font-size: 1.6rem;"
+      " margin-top: 5px;'>UGEL - OTUZCO</h1>",
+      unsafe_allow_html=True,
+  )
+  st.markdown(
+      "<p style='text-align: center; color: #94a3b8; font-size: 0.95rem;"
+      " margin-bottom: 20px;'>Directorio de Servidores - 2026</p>",
+      unsafe_allow_html=True,
+  )
+
+  # Barra de búsqueda principal
+  busqueda = st.text_input(
+      "Búsqueda",
+      placeholder="🔍 Escribe un nombre (ej. amdres), DNI, cargo...",
+      label_visibility="collapsed",
+  )
+
+  # Lógica de filtrado (Limitado estrictamente a 1 resultado)
+  if busqueda and busqueda.strip() != "":
+    palabras = busqueda.strip().lower().split()
+    if palabras:
+
+      def safe_join(row):
+        return " ".join([str(val) for val in row.values if pd.notna(val)])
+
+      texto_completo = df.apply(safe_join, axis=1).str.lower()
+
+      condicion = texto_completo.str.contains(palabras[0], na=False)
+      for palabra in palabras[1:]:
+        condicion = condicion | texto_completo.str.contains(palabra, na=False)
+
+      df_filtered = df[condicion].head(1)
+    else:
+      df_filtered = pd.DataFrame(columns=df.columns)
+  else:
+    df_filtered = pd.DataFrame(columns=df.columns)
+
+  st.markdown("<br>", unsafe_allow_html=True)
+
+  # Renderizar tarjeta o animación de búsqueda interactiva
+  if busqueda and busqueda.strip() != "":
+    if len(df_filtered) > 0:
+      st.markdown(
+          "<p style='text-align: center; color: #64748b; font-size:"
+          " 0.9rem;'><b>1</b> resultado encontrado</p>",
+          unsafe_allow_html=True,
+      )
+      st.markdown("---")
+
+      for _, row in df_filtered.iterrows():
+        detalles_html = ""
+        for col in df.columns:
+          val_limpio = limpiar_valor(row[col])
+          if val_limpio != "N/A" and "NOMBRE" not in col.upper():
+            detalles_html += f"<div class='card-info'><b>{col}:</b> <span>{val_limpio}</span></div>"
+
+        nombre = limpiar_valor(
+            next(
+                (
+                    row[c]
+                    for c in df.columns
+                    if "NOMBRE" in c.upper() and pd.notna(row[c])
+                ),
+                "Sin Nombre",
+            )
+        )
+
+        st.markdown(
+            f"""
+                <div class="resultado-card">
+                    <div class="card-title">👤 {nombre}</div>
+                    <div class="card-grid">
+                        {detalles_html}
+                    </div>
+                </div>
+                """,
+            unsafe_allow_html=True,
+        )
+    else:
+      st.markdown(
+          "<p style='text-align: center; color: #ef4444; font-size:"
+          " 0.95rem;'>❌ No se encontraron resultados para tu búsqueda.</p>",
+          unsafe_allow_html=True,
+      )
+  else:
+    # Animación SVG vectorial de la agenda con movimiento
+    st.markdown(
+        """
+        <div class="empty-state">
+            <div class="pixel-book-container">
+                <svg width="90" height="70" viewBox="0 0 64 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="8" y="8" width="48" height="34" rx="3" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
+                    <line x1="32" y1="8" x2="32" y2="42" stroke="#38bdf8" stroke-width="2"/>
+                    <circle cx="32" cy="12" r="1.5" fill="#f8fafc"/>
+                    <circle cx="32" cy="22" r="1.5" fill="#f8fafc"/>
+                    <circle cx="32" cy="32" r="1.5" fill="#f8fafc"/>
+                    <path class="page-flip" d="M32 10C32 10 44 14 48 25C52 36 32 40 32 40V10Z" fill="#38bdf8" opacity="0.7"/>
+                    <line x1="12" y1="16" x2="24" y2="16" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/>
+                    <line x1="12" y1="22" x2="22" y2="22" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/>
+                    <line x1="12" y1="28" x2="20" y2="28" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <p style="color: #64748b; font-size: 0.9rem; margin-top: 15px;">📖 Escribe un nombre, DNI o cargo para buscar en la agenda...</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+except Exception as e:
+  st.error(f"Error al cargar el archivo de Excel: {e}")
