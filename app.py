@@ -1,3 +1,4 @@
+import base64
 import pandas as pd
 import streamlit as st
 
@@ -6,31 +7,69 @@ st.set_page_config(
     page_title="Directorio UGEL Otuzco 2026", page_icon="📚", layout="centered"
 )
 
-# --- ESTILOS CSS CON ANIMACIÓN DE LIBRO ABIERTO REALISTA ---
+# --- ESTILOS CSS ROBUSTOS (Adaptables a cualquier modo de navegador y móvil) ---
 st.markdown(
     """
     <style>
+    /* Forzar fondo y colores estables sin importar extensiones o modos del navegador */
     .stApp {
-        background-color: #0b0f19;
+        background-color: #0b0f19 !important;
+        color: #f8fafc !important;
     }
     
     .stTextInput small {
         display: none !important;
     }
 
-    /* Tarjeta de resultado única y completa */
+    /* Contenedor flexible para centrar el logo de forma absoluta en celulares y PC */
+    .logo-flex-center {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+
+    .logo-circle-container {
+        width: 85px;
+        height: 85px;
+        border-radius: 50%;
+        overflow: hidden;
+        background-color: #ffffff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        border: 2px solid #334155;
+    }
+
+    .logo-circle-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* Caja de búsqueda adaptada para móviles */
+    div[data-baseweb="input"] {
+        background-color: #161e2e !important;
+        border-radius: 12px !important;
+        border: 1px solid #334155 !important;
+    }
+
+    /* Tarjeta de resultado única y completa optimizada para celular */
     .resultado-card {
-        background-color: #131c2e;
-        border: 1px solid #1e293b;
-        padding: 18px;
+        background-color: #131c2e !important;
+        border: 1px solid #1e293b !important;
+        padding: 16px;
         border-radius: 12px;
         margin-bottom: 15px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
     }
     
     .card-title {
-        color: #f8fafc;
-        font-size: 1.15rem;
+        color: #f8fafc !important;
+        font-size: 1.1rem;
         font-weight: 600;
         margin-bottom: 10px;
         border-bottom: 1px solid #1e293b;
@@ -39,40 +78,48 @@ st.markdown(
 
     .card-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
+
+    /* En pantallas un poco más anchas (PC), poner los datos en dos columnas */
+    @media (min-width: 640px) {
+        .card-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
     }
 
     .card-info {
-        color: #94a3b8;
+        color: #94a3b8 !important;
         font-size: 0.9rem;
         margin-bottom: 4px;
+        word-break: break-word;
     }
     
     .card-info span {
-        color: #f1f5f9;
+        color: #f1f5f9 !important;
     }
 
-    /* Contenedor y animación fluida del libro abierto frontal */
+    /* Animación del libro abierto centralizada */
     .empty-state {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        margin-top: 35px;
+        margin-top: 30px;
         text-align: center;
     }
 
     .realistic-book {
         position: relative;
-        width: 120px;
-        height: 75px;
+        width: 110px;
+        height: 70px;
         margin-bottom: 15px;
     }
 
-    /* Animación de la hoja pasando de derecha a izquierda */
     .animated-page {
-        transform-origin: 60px 35px;
+        transform-origin: 55px 35px;
         animation: flipSheet 1.4s ease-in-out infinite;
     }
 
@@ -134,36 +181,45 @@ def cargar_datos():
 try:
   df = cargar_datos()
 
-  # Carga segura del logo con st.image centrado
-  col_izq, col_centro, col_der = st.columns([3, 1, 3])
-  with col_centro:
+  # Carga robusta y centrada absoluta del logo usando Base64
+  logo_html = ""
+  for filename in ["UGEL - LOGO.jpg", "logo.jpg"]:
     try:
-      st.image("UGEL - LOGO.jpg", width=85)
+      with open(filename, "rb") as image_file:
+        encoded_string = base64.b64encode(image_file.read()).decode()
+        logo_html = f"""
+                <div class="logo-flex-center">
+                    <div class="logo-circle-container">
+                        <img src="data:image/jpeg;base64,{encoded_string}" alt="Logo UGEL">
+                    </div>
+                </div>
+                """
+        break
     except Exception:
-      try:
-        st.image("logo.jpg", width=85)
-      except Exception:
-        pass
+      pass
+
+  if logo_html:
+    st.markdown(logo_html, unsafe_allow_html=True)
 
   st.markdown(
-      "<h1 style='text-align: center; color: #f8fafc; font-size: 1.6rem;"
-      " margin-top: 5px;'>UGEL - OTUZCO</h1>",
+      "<h1 style='text-align: center; color: #f8fafc !important; font-size:"
+      " 1.5rem; margin-top: 5px;'>UGEL - OTUZCO</h1>",
       unsafe_allow_html=True,
   )
   st.markdown(
-      "<p style='text-align: center; color: #94a3b8; font-size: 0.95rem;"
-      " margin-bottom: 20px;'>Directorio de Servidores - 2026</p>",
+      "<p style='text-align: center; color: #94a3b8 !important; font-size:"
+      " 0.9rem; margin-bottom: 20px;'>Directorio de Servidores - 2026</p>",
       unsafe_allow_html=True,
   )
 
   # Barra de búsqueda principal
   busqueda = st.text_input(
       "Búsqueda",
-      placeholder="🔍 Escribe un nombre (ej. amdres), DNI, cargo...",
+      placeholder="🔍 Escribe un nombre, DNI, cargo...",
       label_visibility="collapsed",
   )
 
-  # Lógica de filtrado (Limitado estrictamente a 1 resultado)
+  # Lógica de filtrado (Estrictamente limitado a 1 resultado detallado)
   if busqueda and busqueda.strip() != "":
     palabras = busqueda.strip().lower().split()
     if palabras:
@@ -185,12 +241,12 @@ try:
 
   st.markdown("<br>", unsafe_allow_html=True)
 
-  # Renderizar tarjeta o animación de libro abierto simétrico frontal
+  # Renderizar tarjeta o animación del libro abierto
   if busqueda and busqueda.strip() != "":
     if len(df_filtered) > 0:
       st.markdown(
-          "<p style='text-align: center; color: #64748b; font-size:"
-          " 0.9rem;'><b>1</b> resultado encontrado</p>",
+          "<p style='text-align: center; color: #64748b !important; font-size:"
+          " 0.85rem;'><b>1</b> resultado encontrado</p>",
           unsafe_allow_html=True,
       )
       st.markdown("---")
@@ -226,17 +282,17 @@ try:
         )
     else:
       st.markdown(
-          "<p style='text-align: center; color: #ef4444; font-size:"
-          " 0.95rem;'>❌ No se encontraron resultados para tu búsqueda.</p>",
+          "<p style='text-align: center; color: #ef4444 !important; font-size:"
+          " 0.9rem;'>❌ No se encontraron resultados para tu búsqueda.</p>",
           unsafe_allow_html=True,
       )
   else:
-    # Ilustración vectorial de libro abierto simétrico con hojas proporcionadas
+    # Ilustración animada del libro abierto perfectamente proporcionada
     st.markdown(
         """
         <div class="empty-state">
             <div class="realistic-book">
-                <svg width="120" height="75" viewBox="0 0 120 75" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg width="110" height="70" viewBox="0 0 120 75" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 63C35 66 57 63 60 63C63 63 85 66 108 63V12C85 15 63 12 60 12C57 12 35 15 12 12V63Z" fill="#1e293b" stroke="#38bdf8" stroke-width="2.5" stroke-linejoin="round"/>
                     <path d="M60 12V63" stroke="#38bdf8" stroke-width="2.5"/>
                     <path d="M15 15C35 17 55 15 58 15V60C55 60 35 62 15 60V15Z" fill="#f1f5f9"/>
@@ -252,7 +308,7 @@ try:
                     </g>
                 </svg>
             </div>
-            <p style="color: #64748b; font-size: 0.9rem; margin-top: 15px;">📖 Escribe un nombre, DNI o cargo para consultar la agenda...</p>
+            <p style="color: #64748b !important; font-size: 0.85rem; margin-top: 15px;">📖 Escribe un nombre, DNI o cargo para consultar la agenda...</p>
         </div>
         """,
         unsafe_allow_html=True,
