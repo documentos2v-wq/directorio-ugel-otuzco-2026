@@ -231,16 +231,32 @@ try:
           unsafe_allow_html=True,
       )
   else:
-    # Ilustración vectorial frontal de libro abierto con hojas proporcionadas y animación fluida
+    # Ilustración vectorial de libro abierto simétrico con hojas proporcionadas
     st.markdown(
         """
         <div class="empty-state">
             <div class="realistic-book">
                 <svg width="120" height="75" viewBox="0 0 120 75" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <!-- Tapa exterior y lomo inferior -->
                     <path d="M12 63C35 66 57 63 60 63C63 63 85 66 108 63V12C85 15 63 12 60 12C57 12 35 15 12 12V63Z" fill="#1e293b" stroke="#38bdf8" stroke-width="2.5" stroke-linejoin="round"/>
-                    <!-- Lomo central -->
                     <path d="M60 12V63" stroke="#38bdf8" stroke-width="2.5"/>
-                    <!-- Página fija izquierda -->
                     <path d="M15 15C35 17 55 15 58 15V60C55 60 35 62 15 60V15Z" fill="#f1f5f9"/>
-                    <line x1="20" y1="24" x2="48" y2="24" stroke="#94
+                    <line x1="20" y1="24" x2="48" y2="24" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="20" y1="33" x2="44" y2="33" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="20" y1="42" x2="38" y2="42" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M105 15C85 17 65 15 62 15V60C65 60 85 62 105 60V15Z" fill="#f1f5f9"/>
+                    <line x1="72" y1="24" x2="100" y2="24" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="72" y1="33" x2="96" y2="33" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="72" y1="42" x2="90" y2="42" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+                    <g class="animated-page">
+                        <path d="M60 15C75 15 95 17 105 15V60C95 62 75 60 60 60V15Z" fill="#cbd5e1" opacity="0.9"/>
+                    </g>
+                </svg>
+            </div>
+            <p style="color: #64748b; font-size: 0.9rem; margin-top: 15px;">📖 Escribe un nombre, DNI o cargo para consultar la agenda...</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+except Exception as e:
+  st.error(f"Error al cargar el archivo de Excel: {e}")
