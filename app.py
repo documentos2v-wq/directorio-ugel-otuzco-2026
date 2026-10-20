@@ -133,7 +133,7 @@ def cargar_datos():
 try:
   df = cargar_datos()
 
-  # 1. LOGO EN CÍRCULO SUPERIOR
+  # Logo superior
   try:
     with open("UGEL - LOGO.jpg", "rb") as image_file:
       encoded_string = base64.b64encode(image_file.read()).decode()
@@ -168,8 +168,8 @@ try:
       label_visibility="collapsed",
   )
 
-  # 4. BÚSQUEDA SENSIBLE / FLEXIBLE
-  if busqueda:
+  # LÓGICA DE FILTRADO Y BÚSQUEDA SENSIBLE
+  if busqueda and busqueda.strip() != "":
     palabras = busqueda.strip().lower().split()
     if palabras:
 
@@ -184,52 +184,60 @@ try:
 
       df_filtered = df[condicion]
     else:
-      df_filtered = df
+      df_filtered = pd.DataFrame(columns=df.columns)
   else:
-    df_filtered = df
+    # Si no hay búsqueda, no mostramos ningún resultado para mantener limpio el inicio
+    df_filtered = pd.DataFrame(columns=df.columns)
 
   st.markdown("<br>", unsafe_allow_html=True)
-  st.markdown(
-      f"<p style='color: #64748b; font-size: 0.9rem;'><b>{len(df_filtered)}</b>"
-      " resultados encontrados</p>",
-      unsafe_allow_html=True,
-  )
-  st.markdown("---")
 
-  # 3. RENDERIZAR CADA PERSONA EN UNA SOLA TARJETA CON TODA SU INFORMACIÓN
-  for _, row in df_filtered.iterrows():
-    # Extraer todos los campos disponibles en la fila del DataFrame
-    detalles_html = ""
-    for col in df.columns:
-      val_limpio = limpiar_valor(row[col])
-      # Omitir columnas vacías o de índice numérico si se prefiere, o mostrarlas todas
-      if val_limpio != "N/A" and "NOMBRE" not in col.upper():
-        detalles_html += (
-            f"<div class='card-info'><b>{col}:</b> <span>{val_limpio}</span></div>"
-        )
-
-    nombre = limpiar_valor(
-        next(
-            (
-                row[c]
-                for c in df.columns
-                if "NOMBRE" in c.upper() and pd.notna(row[c])
-            ),
-            "Sin Nombre",
-        )
-    )
-
+  # Mensaje centrado de resultados encontrados
+  if busqueda and busqueda.strip() != "":
     st.markdown(
-        f"""
-        <div class="resultado-card">
-            <div class="card-title">👤 {nombre}</div>
-            <div class="card-grid">
-                {detalles_html}
-            </div>
-        </div>
-        """,
+        f"<p style='text-align: center; color: #64748b; font-size:"
+        f" 0.9rem;'><b>{len(df_filtered)}</b> resultados encontrados</p>",
         unsafe_allow_html=True,
     )
+  else:
+    st.markdown(
+        "<p style='text-align: center; color: #64748b; font-size: 0.9rem;'>🔍"
+        " Escribe en el buscador para encontrar un servidor</p>",
+        unsafe_allow_html=True,
+    )
+
+  st.markdown("---")
+
+  # Renderizar tarjetas solo si hay una búsqueda activa
+  if busqueda and busqueda.strip() != "":
+    for _, row in df_filtered.iterrows():
+      detalles_html = ""
+      for col in df.columns:
+        val_limpio = limpiar_valor(row[col])
+        if val_limpio != "N/A" and "NOMBRE" not in col.upper():
+          detalles_html += f"<div class='card-info'><b>{col}:</b> <span>{val_limpio}</span></div>"
+
+      nombre = limpiar_valor(
+          next(
+              (
+                  row[c]
+                  for c in df.columns
+                  if "NOMBRE" in c.upper() and pd.notna(row[c])
+              ),
+              "Sin Nombre",
+          )
+      )
+
+      st.markdown(
+          f"""
+            <div class="resultado-card">
+                <div class="card-title">👤 {nombre}</div>
+                <div class="card-grid">
+                    {detalles_html}
+                </div>
+            </div>
+            """,
+          unsafe_allow_html=True,
+      )
 
 except Exception as e:
   st.error(f"Error al cargar el archivo de Excel: {e}")
