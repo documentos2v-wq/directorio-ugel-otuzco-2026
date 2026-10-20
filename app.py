@@ -6,25 +6,26 @@ st.set_page_config(
     page_title="Directorio UGEL Otuzco 2026", page_icon="📚", layout="wide"
 )
 
-# --- ESTILOS CSS PERSONALIZADOS (Modo Oscuro Institucional) ---
+# --- ESTILOS CSS MINIMALISTAS Y MODERNOS (2026) ---
 st.markdown(
     """
     <style>
-    /* Fondo general de la página en tono oscuro */
+    /* Fondo general oscuro uniforme y suave */
     .stApp {
-        background: linear-gradient(135deg, #0f172a 1=0%, #1e293b 100%);
+        background-color: #0b0f19;
     }
     
-    /* Títulos principales */
+    /* Tipografía principal limpia */
     h1 {
         color: #f8fafc;
-        font-family: 'Helvetica Neue', sans-serif;
+        font-family: 'Inter', sans-serif;
         font-weight: 700;
+        letter-spacing: -0.5px;
     }
     
     p {
         color: #94a3b8;
-        font-size: 1.1rem;
+        font-size: 1.05rem;
     }
 
     /* Ocultar el texto auxiliar "Press Enter to apply" de las cajas de texto */
@@ -32,41 +33,59 @@ st.markdown(
         display: none !important;
     }
 
-    /* Tarjetas de métricas oscuras */
+    /* Eliminar cajas pesadas en los inputs y hacerlos flotantes/modernos */
+    div[data-baseweb="input"] {
+        background-color: #1e293b !important;
+        border-radius: 8px !important;
+        border: 1px solid #334155 !important;
+    }
+    
+    div[data-baseweb="input"]:focus-within {
+        border-color: #38bdf8 !important;
+    }
+
+    /* Estilo limpio para los selectores (dropdowns) */
+    div[data-baseweb="select"] > div {
+        background-color: #1e293b !important;
+        border-radius: 8px !important;
+        border: 1px solid #334155 !important;
+        color: #f8fafc !important;
+    }
+
+    /* Métricas limpias sin contenedores pesados (Estilo Minimalista) */
     div[data-testid="metric-container"] {
-        background-color: #1e293b;
-        border: 1px solid #334155;
-        padding: 15px;
-        border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0px !important;
     }
     
     div[data-testid="metric-container"] label {
-        color: #cbd5e1 !important;
-        font-weight: 600;
+        color: #94a3b8 !important;
+        font-weight: 500;
+        font-size: 0.9rem;
     }
     
     div[data-testid="metric-container"] div[data-testid="stMetricValue"] {
         color: #38bdf8 !important;
+        font-size: 2.2rem !important;
+        font-weight: 700;
     }
 
-    /* Estilo de la tabla de datos en modo oscuro */
+    /* Tabla elegante sin bordes exagerados */
     div[data-testid="stDataFrame"] {
-        border-radius: 10px;
+        border-radius: 8px;
         overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        border: 1px solid #334155;
+        border: 1px solid #1e293b;
     }
     </style>
 """,
     unsafe_allow_html=True,
 )
 
-# Título principal
-st.title("📌 Directorio de Servidores - UGEL Otuzco 2026")
-st.markdown(
-    "Herramienta automatizada para la consulta rápida del directorio institucional."
-)
+# Título principal limpio
+st.title("Directorio de Servidores · UGEL Otuzco")
+st.markdown("Consulta institucional rápida y en tiempo real.")
 
 
 # Cargar los datos desde el archivo Excel
@@ -108,15 +127,15 @@ def cargar_datos():
 try:
     df = cargar_datos()
 
-    # --- FILTROS VISIBLES EN LA PARTE SUPERIOR ---
-    st.markdown("---")
+    # --- FILTROS MODERNOS SIN BORDES INNECESARIOS ---
+    st.markdown("###")
     col1, col2 = st.columns([2, 1])
 
     with col1:
-        # Input reactivo directo
         busqueda = st.text_input(
-            "🔍 Buscar por Nombre, DNI, Cargo o Celular:",
-            placeholder="Escribe aquí y se filtra al instante...",
+            "Búsqueda general",
+            placeholder="Escribe un nombre, DNI, cargo o celular...",
+            label_visibility="collapsed",
         )
 
     area_col = next(
@@ -124,9 +143,11 @@ try:
     )
     if area_col:
         with col2:
-            areas = ["Todas"] + list(df[area_col].dropna().unique())
-            area_seleccionada = st.selectbox("📂 Filtrar por Área:", areas)
-            if area_seleccionada != "Todas":
+            areas = ["Todas las áreas"] + list(df[area_col].dropna().unique())
+            area_seleccionada = st.selectbox(
+                "Filtrar por área", areas, label_visibility="collapsed"
+            )
+            if area_seleccionada != "Todas las áreas":
                 df = df[df[area_col] == area_seleccionada]
 
     # --- BÚSQUEDA FLEXIBLE EN TIEMPO REAL ---
@@ -153,10 +174,11 @@ try:
 
     st.markdown("---")
 
-    # Mostrar métricas rápidas
-    st.metric(label="Total de Servidores Mostrados", value=len(df_filtered))
+    # Métrica limpia y moderna sin cuadros grises
+    st.metric(label="Registros encontrados", value=len(df_filtered))
+    st.markdown("###")
 
-    # Mostrar la tabla interactiva
+    # Mostrar la tabla interactiva optimizada
     st.dataframe(df_filtered, use_container_width=True, hide_index=True)
 
 except Exception as e:
