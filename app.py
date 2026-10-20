@@ -6,7 +6,7 @@ st.set_page_config(
     page_title="Directorio UGEL Otuzco 2026", page_icon="📚", layout="centered"
 )
 
-# --- ESTILOS CSS CON ANIMACIÓN DE LIBRO REALISTA ---
+# --- ESTILOS CSS CON ANIMACIÓN DE LIBRO ABIERTO REALISTA ---
 st.markdown(
     """
     <style>
@@ -53,7 +53,7 @@ st.markdown(
         color: #f1f5f9;
     }
 
-    /* Contenedor y animación realista del libro abierto */
+    /* Contenedor y animación fluida del libro abierto frontal */
     .empty-state {
         display: flex;
         flex-direction: column;
@@ -63,31 +63,23 @@ st.markdown(
         text-align: center;
     }
 
-    .book-loader {
+    .realistic-book {
         position: relative;
-        width: 100px;
-        height: 70px;
-        perspective: 600px;
+        width: 120px;
+        height: 75px;
         margin-bottom: 15px;
     }
 
-    .book-page {
-        position: absolute;
-        top: 0;
-        left: 50%;
-        width: 50%;
-        height: 100%;
-        background: #f8fafc;
-        border-radius: 0 4px 4px 0;
-        transform-origin: left center;
-        animation: pageFlip 1.2s ease-in-out infinite;
-        box-shadow: inset 2px 0 5px rgba(0,0,0,0.1);
+    /* Animación de la hoja pasando de derecha a izquierda */
+    .animated-page {
+        transform-origin: 60px 35px;
+        animation: flipSheet 1.4s ease-in-out infinite;
     }
 
-    @keyframes pageFlip {
-        0% { transform: rotateY(0deg); background: #f8fafc; }
-        50% { transform: rotateY(-180deg); background: #cbd5e1; }
-        100% { transform: rotateY(0deg); background: #f8fafc; }
+    @keyframes flipSheet {
+        0% { transform: rotateY(0deg); opacity: 1; }
+        50% { transform: rotateY(-90deg); opacity: 0.5; }
+        100% { transform: rotateY(-180deg); opacity: 0.9; }
     }
     </style>
 """,
@@ -193,7 +185,7 @@ try:
 
   st.markdown("<br>", unsafe_allow_html=True)
 
-  # Renderizar tarjeta o animación de libro abierto realista
+  # Renderizar tarjeta o animación de libro abierto simétrico frontal
   if busqueda and busqueda.strip() != "":
     if len(df_filtered) > 0:
       st.markdown(
@@ -239,26 +231,16 @@ try:
           unsafe_allow_html=True,
       )
   else:
-    # Animación avanzada de libro abierto con hojas reales pasando
+    # Ilustración vectorial frontal de libro abierto con hojas proporcionadas y animación fluida
     st.markdown(
         """
         <div class="empty-state">
-            <div class="book-loader">
-                <svg width="100" height="70" viewBox="0 0 100 70" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M50 62C35 62 15 64 5 58V12C15 16 35 14 50 20C65 14 85 16 95 12V58C85 64 65 62 50 62Z" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
-                    <path d="M50 20V62" stroke="#38bdf8" stroke-width="2"/>
-                    <path d="M48 21C35 15 17 17 7 21V55C17 51 35 49 48 55V21Z" fill="#f1f5f9"/>
-                    <line x1="14" y1="28" x2="38" y2="28" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
-                    <line x1="14" y1="36" x2="34" y2="36" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
-                    <line x1="14" y1="44" x2="30" y2="44" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                <div class="book-page"></div>
-            </div>
-            <p style="color: #64748b; font-size: 0.9rem; margin-top: 20px;">📖 Escribe un nombre, DNI o cargo para consultar la agenda...</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-except Exception as e:
-  st.error(f"Error al cargar el archivo de Excel: {e}")
+            <div class="realistic-book">
+                <svg width="120" height="75" viewBox="0 0 120 75" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Tapa exterior y lomo inferior -->
+                    <path d="M12 63C35 66 57 63 60 63C63 63 85 66 108 63V12C85 15 63 12 60 12C57 12 35 15 12 12V63Z" fill="#1e293b" stroke="#38bdf8" stroke-width="2.5" stroke-linejoin="round"/>
+                    <!-- Lomo central -->
+                    <path d="M60 12V63" stroke="#38bdf8" stroke-width="2.5"/>
+                    <!-- Página fija izquierda -->
+                    <path d="M15 15C35 17 55 15 58 15V60C55 60 35 62 15 60V15Z" fill="#f1f5f9"/>
+                    <line x1="20" y1="24" x2="48" y2="24" stroke="#94
